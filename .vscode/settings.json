@@ -1,0 +1,8 @@
+{
+    "java.configuration.updateBuildConfiguration": "interactive",
+    "chat.tools.terminal.autoApprove": {
+        "npx playwright": true,
+        "npm install": true,
+        "npx tsc": true
+    }
+}

@@ -1,0 +1,68 @@
+name: CI — Selenium Cucumber Tests
+
+on:
+  push:
+    branches: [ "main", "develop" ]
+  pull_request:
+    branches: [ "main", "develop" ]
+
+jobs:
+  test:
+    name: Run Selenium Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      # ── Checkout ──────────────────────────────────────────────
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # ── Java ──────────────────────────────────────────────────
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: maven
+
+      # ── Browser ───────────────────────────────────────────────
+      - name: Install Chrome
+        uses: browser-actions/setup-chrome@v1
+
+      # ── Tests ─────────────────────────────────────────────────
+      - name: Run tests
+        env:
+          BASE_URL: https://demowebshop.tricentis.com/
+          BROWSER:  chrome
+          HEADLESS: true
+        run: |
+          mvn clean test \
+            -DBASE_URL="${BASE_URL}" \
+            -DBROWSER="${BROWSER}" \
+            -DHEADLESS="${HEADLESS}" \
+            --no-transfer-progress
+
+      # ── Reports ───────────────────────────────────────────────
+      - name: Upload Extent Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: extent-report
+          path: reports/extent-report.html
+          retention-days: 14
+
+      - name: Upload Screenshots (on failure)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: failure-screenshots
+          path: screenshots/
+          retention-days: 7
+
+      - name: Upload Logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-logs
+          path: logs/
+          retention-days: 7
